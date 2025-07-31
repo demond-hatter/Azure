@@ -1,49 +1,51 @@
 <#
 .SYNOPSIS
-    Get Azure SQL Database size information and backup metrics over the last 30 days
+    Creates a new KeyVault Key 
 
 .DESCRIPTION
-    This script retrieves information about Azure SQL Databases including:
-    - Database size metrics (current, max, average over 30 days)
-    - Backup storage metrics from Azure platform metrics
-    - Full backup, log backup, and differential backup storage metrics
+    This script will create a new keyvault 
 
 .PARAMETER SubscriptionId
     Azure Subscription ID to query
 
 .PARAMETER TenantId
-    Optional: Azure Tenant ID to use for authentication
+    Azure Tenant ID to use for authentication
+
+.PARAMETER subscriptionId
+    the Azure Subscription ID to use for authentication. If not specified, the current subscription will be used.
 
 .PARAMETER ResourceGroupName
-    Optional: Specific Resource Group to query (if not specified, all resource groups will be queried)
+    The name of the Azure Resource Group where the Key Vault is located. This is required to create the key.
 
-.PARAMETER ServerName
-    Optional: Specific SQL Server to query (if not specified, all servers will be queried)
+.PARAMETER KeyVaultName
+    The name of the Azure Key Vault where the key will be created.
 
-.PARAMETER DatabaseName
-    Optional: Specific Database to query (if not specified, all databases will be queried)
-
-.EXAMPLE
-    .\Azure_SQL_DB_Info.ps1 -SubscriptionId "12345678-1234-1234-1234-123456789012"
-
-.EXAMPLE
-    .\Azure_SQL_DB_Info.ps1 -SubscriptionId "12345678-1234-1234-1234-123456789012" -TenantId "87654321-4321-4321-4321-210987654321"
+.PARAMETER AppIdSecretName
+    The name of the key vault secret that contains the App ID.
+ 
+.PARAMETER AppSecretSecretName
+    The name of the key vault secret that contains the App Secret.
 
 .EXAMPLE
-    .\Azure_SQL_DB_Info.ps1 -SubscriptionId "12345678-1234-1234-1234-123456789012" -ResourceGroupName "MyRG" -ServerName "MyServer"
+    New-KeyVaultKey -TenantId "your-tenant-id" -SubscriptionId "your-subscription-id" -ResourceGroupName "your-resource-group" -KeyVaultName "your-key-vault-name" -AppIdSecretName "your-app-id-secret-name" -AppSecretSecretName "your-app-secret-secret-name"
+    
+    This example creates a new key in the specified Key Vault using the provided App ID and App Secret from the Key Vault secrets.
 #>
-
-
-# Connect to Azure Key Vault, retrieve App ID and Secret, authenticate, and create HSM-backed key
 function New-KeyVaultKey {
     [CmdletBinding()]
     param(
-    [string]$tenantId,
-    [string]$subscriptionId,
-    [string]$ResourceGroupName,
-    [string]$KeyVaultName,
-    [string]$AppIdSecretName,
-    [string]$AppSecretSecretName
+    [Parameter(Mandatory = $true)]
+        [string]$tenantId,
+    [Parameter(Mandatory = $true)]
+        [string]$subscriptionId,
+    [Parameter(Mandatory = $true)]
+        [string]$ResourceGroupName,
+    [Parameter(Mandatory = $true)]
+        [string]$KeyVaultName,
+    [Parameter(Mandatory = $true)]
+        [string]$AppIdSecretName,
+    [Parameter(Mandatory = $true)]
+        [string]$AppSecretSecretName
     )
 PROCESS {
     # Install required modules if not present
@@ -57,28 +59,30 @@ PROCESS {
     Import-Module Az.Accounts
     Import-Module Az.KeyVault
 
-    Connect-AzAccount -Tenant $tenantId -Subscription $subscriptionId
+    # Authenticate to Azure using the specified tenant and subscription as the current user
+        Connect-AzAccount -Tenant $tenantId -Subscription $subscriptionId
 
     # Get secrets from Key Vault using your current context
         $AppId = (Get-AzKeyVaultSecret -VaultName $KeyVaultName -Name $AppIdSecretName).SecretValue
         $AppSecret = (Get-AzKeyVaultSecret -VaultName $KeyVaultName -Name $AppSecretSecretName).SecretValue
+        $appId = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($AppId))
+
 
     # Authenticate to Azure using App Registration credentials
-        $SecurePassword = ConvertTo-SecureString $AppSecret -AsPlainText -Force
-        $Credential = New-Object System.Management.Automation.PSCredential($AppId, $SecurePassword)
-        Connect-AzAccount -ServicePrincipal -Credential $Credential -Tenant $tenantId
+        $Credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $AppId, $AppSecret
+        Connect-AzAccount -ServicePrincipal -Credential $Credential -Tenant $tenantId -Subscription $subscriptionId
 
     # Create HSM-backed encryption key
-        $Expires = (Get-Date).ToUniversalTime()
+        $Created = (Get-Date).ToUniversalTime()
+        $Expires = $Created.addyears(2)
         $KeyName = (New-KeyVaultKeyName -expirationDate $Expires)
         $parms = @{
             VaultName = $KeyVaultName
             Name = $KeyName
             KeyType = 'RSA'
-            KeySize = 2048
+            Size = 2048
             Destination = 'HSM'
             Expires = $Expires
-            Enabled = $true
         }
         Add-AzKeyVaultKey @parms
 
@@ -87,8 +91,8 @@ PROCESS {
 
 function New-KeyVaultKeyName {
     param (
-        [string]$expirationDate
+        [datetime]$expirationDate
     )
 
-    return $env:COMPUTERNAME + "_" + $expirationDate.ToString("yyyyMMdd-HHmmss") + "key"
+    return $env:COMPUTERNAME + "_" + $expirationDate.ToString("yyyyMMdd_HHmmss") + "key"
 }
