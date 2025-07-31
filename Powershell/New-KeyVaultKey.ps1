@@ -94,5 +94,5 @@ function New-KeyVaultKeyName {
         [datetime]$expirationDate
     )
 
-    return $env:COMPUTERNAME + "_" + $expirationDate.ToString("yyyyMMdd_HHmmss") + "key"
+    return "$($env:COMPUTERNAME.Replace('-',''))-$($expirationDate.ToString("yyyyMMddHHmmss"))-key"
 }
