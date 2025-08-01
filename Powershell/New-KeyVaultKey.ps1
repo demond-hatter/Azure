@@ -83,6 +83,7 @@ PROCESS {
             Size = 2048
             Destination = 'HSM'
             Expires = $Expires
+            Exportable = $true
         }
         Add-AzKeyVaultKey @parms
 
