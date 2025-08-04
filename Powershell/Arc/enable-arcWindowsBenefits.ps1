@@ -160,12 +160,10 @@ function Set-ArcWindowsBenefits {
             try {
                 $currentLicenseProfile = Invoke-RestMethod -Method GET -Uri $licenseProfileUri.AbsoluteUri -Headers $headers -ErrorAction Stop
             } catch {
-                Write-Error " - Error retrieving current license profile: $_"
+                Write-Host " - No license profile exist for $machineName"
             }
 
-            if ($currentLicenseProfile.properties.softwareAssurance.softwareAssuranceCustomer -eq $true) {
-                Write-Host " - Azure Benefits already enabled."
-            } else {
+            if (-not $currentLicenseProfile.properties.softwareAssurance.softwareAssuranceCustomer -or $currentLicenseProfile.properties.softwareAssurance.softwareAssuranceCustomer -eq $false) {
                 # Enable Azure Benefits
                 write-host " - Attempting to Enable Azure Benefits for $machineName..."
                 $body = @{
@@ -179,6 +177,8 @@ function Set-ArcWindowsBenefits {
 
                 Invoke-RestMethod -Method PUT -Uri $licenseProfileUri -ContentType "application/json" -Headers $headers -Body $body
                 Write-Host " - Azure Benefits enabled successfully."
+            } else {
+                Write-Host " - Azure Benefits already enabled for $machineName."
             }
         } catch {
             Write-Error " - Could not enable Azure Windows Benefits: $_"
