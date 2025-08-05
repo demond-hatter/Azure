@@ -161,9 +161,10 @@ function Set-ArcWindowsBenefits {
                 $currentLicenseProfile = Invoke-RestMethod -Method GET -Uri $licenseProfileUri.AbsoluteUri -Headers $headers -ErrorAction Stop
             } catch {
                 Write-Host " - No license profile exist for $machineName"
+                $currentLicenseProfile = $null
             }
 
-            if (-not $currentLicenseProfile.properties.softwareAssurance.softwareAssuranceCustomer -or $currentLicenseProfile.properties.softwareAssurance.softwareAssuranceCustomer -eq $false) {
+            if ($null -eq $currentLicenseProfile -or $currentLicenseProfile.properties.softwareAssurance.softwareAssuranceCustomer -eq $false) {
                 # Enable Azure Benefits
                 write-host " - Attempting to Enable Azure Benefits for $machineName..."
                 $body = @{
