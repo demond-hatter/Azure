@@ -3,7 +3,7 @@
     Creates a new KeyVault Key 
 
 .DESCRIPTION
-    This script will create a new keyvault 
+    This script will create a new keyvault key using the specified parameters.
 
 .NOTES
 	Author: Demond Hatter - Sr. Cloud Solution Architect - Microsoft
@@ -18,9 +18,6 @@
     interruption, loss of business information, or other pecuniary loss) arising out of the use of or 
     inability to use the sample scripts or documentation, even if Microsoft has been advised of the 
     possibility of such damages 
-
-.PARAMETER SubscriptionId
-    Azure Subscription ID to query
 
 .PARAMETER TenantId
     Azure Tenant ID to use for authentication
