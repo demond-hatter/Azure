@@ -3,7 +3,7 @@
 	Deploy the Azure Arc SQL Server Extension to onboard SQL Servers to Azure
 .DESCRIPTION
 	This script will deploy the Azure Arc SQL Server Extension to onboard SQL Servers to Azure in bulk 
-	The servers will be onboarded in least privilege mode.
+	The servers will be onboarded in least privilege mode, and the script will also disable the ClientConnections feature
 .NOTES
 	Contributor: Demond Hatter - Sr. Cloud Solution Architect - Microsoft Corporation
 	Contributor: Sunil Seth - Cloud Solution Architect - Microsoft Corporation
@@ -75,7 +75,6 @@ Param(
 
 $extensionName="WindowsAgent.SqlServer"
 
-
 write-verbose "Checking for CSV file at path: $CsvFilePath"
 	if (-not (Test-Path $CsvFilePath)) {
 		Write-Error "CSV file path '$CsvFilePath' does not exist. Please provide a valid path and CSV file."
@@ -87,7 +86,6 @@ write-verbose "Checking for log file at path: $LogFilePath"
 		Remove-Item -Path $LogFilePath -Force
 	}
 	New-Item -ItemType File -Path $LogFilePath -Force | Out-Null
-
 
 Write-Verbose "Authenticating to Azure..."
 	if ($PSCmdlet.ParameterSetName -eq 'interactive') {
@@ -115,7 +113,6 @@ foreach ($Machine in $MachineList) {
 
     Write-Host "Processing machine: $MachineName"
     "Processing machine: $MachineName" | Out-File -FilePath $LogFilePath -Append
-
     
     $Settings = @{
         SqlManagement = @{
@@ -126,9 +123,12 @@ foreach ($Machine in $MachineList) {
                 Name = "LeastPrivilege"
                 Enable = $true
             }
-                   
+            @{
+				Name = "clientconnections"
+				Enable = $false
+			}       
         )
-        LicenseType = "Paid"
+        LicenseType = $licenseType
     }
 
     try {
@@ -137,7 +137,7 @@ foreach ($Machine in $MachineList) {
                                          -MachineName $MachineName `
                                          -Location $Location `
                                          -Publisher "Microsoft.AzureData" `
-                                         -Settings $Settings `
+                                         -Setting $Settings `
                                          -ExtensionType "$extensionName"
                              
         Write-Host "Extension successfully applied to machine: $MachineName"
@@ -146,8 +146,6 @@ foreach ($Machine in $MachineList) {
         Write-Error "Failed to apply extension to machine: $MachineName. Error: $_"
         "Failed to apply extension to machine: $MachineName. Error: $_" | Out-File -FilePath $LogFilePath -Append
     }
-
-    
 }
 
 function connect-toAzure {
