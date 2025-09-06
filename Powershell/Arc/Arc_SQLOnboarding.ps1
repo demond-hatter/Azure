@@ -326,6 +326,15 @@ function remove-arcSqlExtension {
 				Write-Host "Arc SQL Extension is installed on machine: $machineName. Attempting to uninstall..."
 				$extension | Remove-AzConnectedMachineExtension -NoWait -ErrorAction Stop
 				Write-Host "Successfully removed the Arc SQL Extension from machine: $machineName"
+				$resources = Get-AzResource -ResourceGroupName $resourceGroup -ResourceType "Microsoft.AzureArcData/SqlServerInstances" -Name $MachineName -ErrorAction Stop -Pre -ExpandProperties
+				foreach ($resource in $resources) {
+					try {
+						Remove-AzResource -ResourceId $resource.ResourceId -Force -ErrorAction Stop
+						Write-Host "Successfully removed the Arc SQL Instance resource: $($resource.Name)"
+					} catch {
+						Write-Error "Failed to remove Arc SQL Instance resource: $($resource.Name). Error: $_"
+					}
+				}
 			} else {
 				Write-Host "Arc SQL Extension is not installed on machine: $machineName. Skipping..."
 			}
