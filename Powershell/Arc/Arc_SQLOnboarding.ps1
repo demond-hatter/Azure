@@ -18,6 +18,7 @@
 
 
     This sample script is not supported under any Microsoft standard support program or service. 
+
     The sample script is provided AS IS without warranty of any kind. Microsoft further disclaims 
     all implied warranties including, without limitation, any implied warranties of merchantability 
     or of fitness for a particular purpose. The entire risk arising out of the use or performance of 
@@ -164,6 +165,46 @@ function add-sqlExtension {
 	}
 }
 
+<#
+.SYNOPSIS
+	Disable SQL Arc features on specified machines
+.DESCRIPTION
+	This function disables SQL Arc features on the specified machines.  Specifically the following:
+		- Backup Policy
+		- Monitoring (Performance Dashboard)
+		- Migration Assessment
+.NOTES
+	Contributor: Demond Hatter - Sr. Cloud Solution Architect - Microsoft Corporation
+
+	This sample script is not supported under any Microsoft standard support program or service. 
+
+	The sample script is provided AS IS without warranty of any kind. Microsoft further disclaims 
+	all implied warranties including, without limitation, any implied warranties of merchantability 
+	or of fitness for a particular purpose. The entire risk arising out of the use or performance of 
+	the sample scripts and documentation remains with you. In no event shall Microsoft, its authors, 
+	or anyone else involved in the creation, production, or delivery of the scripts be liable for any 
+	damages whatsoever (including, without limitation, damages for loss of business profits, business 
+	interruption, loss of business information, or other pecuniary loss) arising out of the use of or 
+	inability to use the sample scripts or documentation, even if Microsoft has been advised of the 
+	possibility of such damages
+.PARAMETER servicePrincipalClientId
+	Specifies the application ID of the service principal used to create the Azure Arc-enabled server resource in Azure	
+.PARAMETER servicePrincipalSecret
+	Specifies the service principal secret	
+.PARAMETER subscriptionId
+	The subscription name or ID where you want to create the Azure Arc-enabled server resource
+.PARAMETER resourceGroup
+	Name of the Azure resource group where you want to create the Azure Arc-enabled server resource
+.PARAMETER tenantId
+	The tenant ID for the subscription where you want to create the Azure Arc-enabled server resource. This
+	flag is required when authenticating with a service principal
+.PARAMETER csvFilePath
+	The full path to a CSV file containing a list of Arc-enabled servers to onboard. The CSV file must contain
+	a column named 'MachineName'
+.PARAMETER logFilePath
+	The full path to a log file where the script will write its output. If the file already exists, it will be
+	overwritten. Default is 'ScriptExecutionLog.txt' in the current directory.
+#>
 function disable-sqlArcFeatures{
 	[CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'interactive')]	
 	param (
@@ -251,6 +292,46 @@ function disable-sqlArcFeatures{
 		}
 }
 
+<#
+.SYNOPSIS
+	Remove the Arc SQL Extension from specified machines
+.DESCRIPTION
+	This function removes the Arc SQL Extension from the specified machines.  It also removes the Arc SQL
+	Instance resource from Azure.
+.NOTES
+	Contributor: Demond Hatter - Sr. Cloud Solution Architect - Microsoft Corporation
+
+	This sample script is not supported under any Microsoft standard support program or service. 
+
+	The sample script is provided AS IS without warranty of any kind. Microsoft further disclaims 
+	all implied warranties including, without limitation, any implied warranties of merchantability 
+	or of fitness for a particular purpose. The entire risk arising out of the use or performance of 
+	the sample scripts and documentation remains with you. In no event shall Microsoft, its authors, 
+	or anyone else involved in the creation, production, or delivery of the scripts be liable for any 
+	damages whatsoever (including, without limitation, damages for loss of business profits, business 
+	interruption, loss of business information, or other pecuniary loss) arising out of the use of or 
+	inability to use the sample scripts or documentation, even if Microsoft has been advised of the 
+	possibility of such damages
+
+.PARAMETER servicePrincipalClientId
+	Specifies the application ID of the service principal used to create the Azure Arc-enabled server resource
+	in Azure
+.PARAMETER servicePrincipalSecret
+	Specifies the service principal secret
+.PARAMETER subscriptionId
+	The subscription name or ID where you want to create the Azure Arc-enabled server resource
+.PARAMETER resourceGroup
+	Name of the Azure resource group where you want to create the Azure Arc-enabled server resource
+.PARAMETER tenantId
+	The tenant ID for the subscription where you want to create the Azure Arc-enabled server resource. This
+	flag is required when authenticating with a service principal
+.PARAMETER csvFilePath
+	The full path to a CSV file containing a list of Arc-enabled servers to onboard. The CSV file must contain
+	a column named 'MachineName'
+.PARAMETER logFilePath
+	The full path to a log file where the script will write its output. If the file already exists, it will be
+	overwritten. Default is 'ScriptExecutionLog.txt' in the current directory.
+#>
 function remove-arcSqlExtension {
 	[CmdletBinding(DefaultParameterSetName = 'interactive')]	
 	param (
@@ -324,7 +405,7 @@ function remove-arcSqlExtension {
 
 			if ($extension) {
 				Write-Host "Arc SQL Extension is installed on machine: $machineName. Attempting to uninstall..."
-				$extension | Remove-AzConnectedMachineExtension -NoWait -ErrorAction Stop
+				$extension | Remove-AzConnectedMachineExtension -ErrorAction Stop
 				Write-Host "Successfully removed the Arc SQL Extension from machine: $machineName"
 				$resources = Get-AzResource -ResourceGroupName $resourceGroup -ResourceType "Microsoft.AzureArcData/SqlServerInstances" -Name $MachineName -ErrorAction Stop -Pre -ExpandProperties
 				foreach ($resource in $resources) {
@@ -344,6 +425,43 @@ function remove-arcSqlExtension {
 	}
 }
 
+<#
+.SYNOPSIS
+	Connect to Azure using either interactive login or service principal
+.DESCRIPTION
+	This function connects to Azure using either interactive login or service principal based on the provided parameters.
+	It returns the current Azure context.
+.NOTES
+	Contributor: Demond Hatter - Sr. Cloud Solution Architect - Microsoft Corporation
+
+	This sample script is not supported under any Microsoft standard support program or service. 
+
+	The sample script is provided AS IS without warranty of any kind. Microsoft further disclaims 
+	all implied warranties including, without limitation, any implied warranties of merchantability 
+	or of fitness for a particular purpose. The entire risk arising out of the use or performance of 
+	the sample scripts and documentation remains with you. In no event shall Microsoft, its authors, 
+	or anyone else involved in the creation, production, or delivery of the scripts be liable for any 
+	damages whatsoever (including, without limitation, damages for loss of business profits, business 
+	interruption, loss of business information, or other pecuniary loss) arising out of the use of or 
+	inability to use the sample scripts or documentation, even if Microsoft has been advised of the 
+	possibility of such damages
+.PARAMETER servicePrincipalClientId
+	Specifies the application ID of the service principal used to create the Azure Arc-enabled server resource
+	in Azure
+.PARAMETER servicePrincipalSecret
+	Specifies the service principal secret
+.PARAMETER subscriptionId
+	The subscription name or ID where you want to create the Azure Arc-enabled server resource	
+.PARAMETER tenantId
+	The tenant ID for the subscription where you want to create the Azure Arc-enabled server resource. This
+	flag is required when authenticating with a service principal
+.EXAMPLE
+	# Interactive login
+	$ctx = connect-toAzure -tenantId "7097r598724e098" -subscriptionId "797987"
+.EXAMPLE
+	# Service principal login
+	$ctx = connect-toAzure -tenantId "7097r598724e098" -subscriptionId "797987" -servicePrincipalClientId "98080..." -servicePrincipalSecret "7707879867986"
+#>
 function connect-toAzure {
 	[CmdletBinding(DefaultParameterSetName = 'InteractiveUserSet')]
 	Param(
