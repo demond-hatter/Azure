@@ -10,7 +10,7 @@
 	
 		least privilege mode - enabled
 		ClientConnections - disabled
-		SQL Management - 
+		SQL Management - enabled
 		license type - PAYG, Paid, or LicenseOnly (as specified by the user)
 .NOTES
 	Contributor: Demond Hatter - Sr. Cloud Solution Architect - Microsoft Corporation
@@ -57,35 +57,35 @@
 
     add-sqlExtension -servicePrincipalClientId "98080..." -servicePrincipalSecret "7707879867986" -subscriptionId "797987" -resourceGroup "myRGroup" -tenantId "7097r598724e098" -location "eastus2" -tags "APMID=999999,DataCenter=CCC"
 #>
-function add-sqlExtension {
+function add-arcSqlExtension {
 	[CmdletBinding(DefaultParameterSetName = 'interactive')]
 	Param(
 		[Parameter(Mandatory=$True, ParameterSetName = "principal", Position=0)]
 			[string]$servicePrincipalClientId,
-		[Parameter(Mandatory=$True, ParameterSetName = "principal", Position=0)]
-			[string]$servicePrincipalSecret,
 		[Parameter(Mandatory=$True, ParameterSetName = "principal", Position=1)]
-		[Parameter(Mandatory=$True, ParameterSetName = "interactive", Position=1)]
-			[string]$subscritionId,
-		[Parameter(Mandatory=$True,ParameterSetName = "principal", Position=0)]
+			[string]$servicePrincipalSecret,
+		[Parameter(Mandatory=$True, ParameterSetName = "principal", Position=2)]
+		[Parameter(Mandatory=$True, ParameterSetName = "interactive", Position=0)]
+			[string]$subscriptionId,
+		[Parameter(Mandatory=$True,ParameterSetName = "principal", Position=3)]
 		[Parameter(Mandatory=$True, ParameterSetName = "interactive", Position=1)]
 			[string]$resourceGroup,
-		[Parameter(Mandatory=$True, ParameterSetName = "principal", Position=0)]
-		[Parameter(Mandatory=$True, ParameterSetName = "interactive", Position=1)]
+		[Parameter(Mandatory=$True, ParameterSetName = "principal", Position=4)]
+		[Parameter(Mandatory=$True, ParameterSetName = "interactive", Position=2)]
 			[string]$tenantId,
-		[Parameter(Mandatory=$True,ParameterSetName = "principal", Position=0)]
-		[Parameter(Mandatory=$True, ParameterSetName = "interactive", Position=1)]
+		[Parameter(Mandatory=$True,ParameterSetName = "principal", Position=5)]
+		[Parameter(Mandatory=$True, ParameterSetName = "interactive", Position=3)]
 		[ValidateSet('eastus','eastus2','centralus','westus')]
 			[string]$location,
-		[Parameter(Mandatory=$True,ParameterSetName = "principal", Position=0)]
-		[Parameter(Mandatory=$True, ParameterSetName = "interactive", Position=1)]
+		[Parameter(Mandatory=$True,ParameterSetName = "principal", Position=6)]
+		[Parameter(Mandatory=$True, ParameterSetName = "interactive", Position=4)]
 		[ValidateSet('PAYG','Paid', 'LicenseOnly')]
 			[string]$licenseType,
-		[Parameter(Mandatory=$True,ParameterSetName = "principal", Position=0)]
-		[Parameter(Mandatory=$True, ParameterSetName = "interactive", Position=1)]
+		[Parameter(Mandatory=$True,ParameterSetName = "principal", Position=7)]
+		[Parameter(Mandatory=$True, ParameterSetName = "interactive", Position=5)]
 			[string]$csvFilePath,
-		[Parameter(Mandatory=$false,ParameterSetName = "principal", Position=0)]
-		[Parameter(Mandatory=$false, ParameterSetName = "interactive", Position=1)]
+		[Parameter(Mandatory=$false,ParameterSetName = "principal", Position=8)]
+		[Parameter(Mandatory=$false, ParameterSetName = "interactive", Position=6)]
 			[string]$logFilePath = "AddSqlExtensionLog.txt"
 	)
 
@@ -205,27 +205,27 @@ function add-sqlExtension {
 	The full path to a log file where the script will write its output. If the file already exists, it will be
 	overwritten. Default is 'ScriptExecutionLog.txt' in the current directory.
 #>
-function disable-sqlArcFeatures{
+function disable-arcSqlFeatures{
 	[CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'interactive')]	
 	param (
 		[Parameter(Mandatory=$True, ParameterSetName = "principal", Position=0)]
 			[string]$servicePrincipalClientId,
-		[Parameter(Mandatory=$True, ParameterSetName = "principal", Position=0)]
-			[string]$servicePrincipalSecret,
 		[Parameter(Mandatory=$True, ParameterSetName = "principal", Position=1)]
-		[Parameter(Mandatory=$True, ParameterSetName = "interactive", Position=1)]
+			[string]$servicePrincipalSecret,
+		[Parameter(Mandatory=$True, ParameterSetName = "principal", Position=2)]
+		[Parameter(Mandatory=$True, ParameterSetName = "interactive", Position=0)]
 			[string]$subscritionId,
-		[Parameter(Mandatory=$True,ParameterSetName = "principal", Position=0)]
+		[Parameter(Mandatory=$True,ParameterSetName = "principal", Position=3)]
 		[Parameter(Mandatory=$True, ParameterSetName = "interactive", Position=1)]
 			[string]$resourceGroup,
-		[Parameter(Mandatory=$True, ParameterSetName = "principal", Position=0)]
-		[Parameter(Mandatory=$True, ParameterSetName = "interactive", Position=1)]
+		[Parameter(Mandatory=$True, ParameterSetName = "principal", Position=4)]
+		[Parameter(Mandatory=$True, ParameterSetName = "interactive", Position=2)]
 			[string]$tenantId,
-		[Parameter(Mandatory=$True,ParameterSetName = "principal", Position=0)]
-		[Parameter(Mandatory=$True, ParameterSetName = "interactive", Position=1)]
+		[Parameter(Mandatory=$True,ParameterSetName = "principal", Position=5)]
+		[Parameter(Mandatory=$True, ParameterSetName = "interactive", Position=3)]
 			[string]$csvFilePath,
-		[Parameter(Mandatory=$false,ParameterSetName = "principal", Position=0)]
-		[Parameter(Mandatory=$false, ParameterSetName = "interactive", Position=1)]
+		[Parameter(Mandatory=$false,ParameterSetName = "principal", Position=6)]
+		[Parameter(Mandatory=$false, ParameterSetName = "interactive", Position=4)]
 			[string]$logFilePath = "ScriptExecutionLog.txt"
 	)
 
@@ -337,31 +337,31 @@ function remove-arcSqlExtension {
 	param (
 		[Parameter(Mandatory=$True, ParameterSetName = "principal", Position=0)]
 			[string]$servicePrincipalClientId,
-		[Parameter(Mandatory=$True, ParameterSetName = "principal", Position=0)]
-			[string]$servicePrincipalSecret,
 		[Parameter(Mandatory=$True, ParameterSetName = "principal", Position=1)]
-		[Parameter(Mandatory=$True, ParameterSetName = "interactive", Position=1)]
-			[string]$subscritionId,
-		[Parameter(Mandatory=$True,ParameterSetName = "principal", Position=0)]
+			[string]$servicePrincipalSecret,
+		[Parameter(Mandatory=$True, ParameterSetName = "principal", Position=2)]
+		[Parameter(Mandatory=$True, ParameterSetName = "interactive", Position=0)]
+			[string]$subscriptionId,
+		[Parameter(Mandatory=$True,ParameterSetName = "principal", Position=3)]
 		[Parameter(Mandatory=$True, ParameterSetName = "interactive", Position=1)]
 			[string]$resourceGroup,
-		[Parameter(Mandatory=$True, ParameterSetName = "principal", Position=0)]
-		[Parameter(Mandatory=$True, ParameterSetName = "interactive", Position=1)]
+		[Parameter(Mandatory=$True, ParameterSetName = "principal", Position=4)]
+		[Parameter(Mandatory=$True, ParameterSetName = "interactive", Position=2)]
 			[string]$tenantId,
-		[Parameter(Mandatory=$True,ParameterSetName = "principal", Position=0)]
-		[Parameter(Mandatory=$True, ParameterSetName = "interactive", Position=1)]
+		[Parameter(Mandatory=$True,ParameterSetName = "principal", Position=5)]
+		[Parameter(Mandatory=$True, ParameterSetName = "interactive", Position=3)]
 			[string]$csvFilePath,
-		[Parameter(Mandatory=$false,ParameterSetName = "principal", Position=0)]
-		[Parameter(Mandatory=$false, ParameterSetName = "interactive", Position=1)]
+		[Parameter(Mandatory=$false,ParameterSetName = "principal", Position=6)]
+		[Parameter(Mandatory=$false, ParameterSetName = "interactive", Position=4)]
 			[string]$logFilePath = "ScriptExecutionLog.txt"
 	)
 
 	try {
 		Write-Verbose "Connecting to Azure with subscription ID: $subscriptionId"
 		if ($PSCmdlet.ParameterSetName -eq 'interactive') {
-			$ctx = connect-toAzure -tenantId $tenantId -subscriptionId $subscritionId
+			$ctx = connect-toAzure -tenantId $tenantId -subscriptionId $subscriptionId
 		} else {
-			$ctx = connect-toAzure -tenantId $tenantId -subscriptionId $subscritionId -servicePrincipalClientId $servicePrincipalClientId -servicePrincipalSecret $servicePrincipalSecret
+			$ctx = connect-toAzure -tenantId $tenantId -subscriptionId $subscriptionId -servicePrincipalClientId $servicePrincipalClientId -servicePrincipalSecret $servicePrincipalSecret
 		}
 	} catch {
 		Write-Error "An error occurred: $_"
@@ -407,13 +407,13 @@ function remove-arcSqlExtension {
 				Write-Host "Arc SQL Extension is installed on machine: $machineName. Attempting to uninstall..."
 				$extension | Remove-AzConnectedMachineExtension -ErrorAction Stop
 				Write-Host "Successfully removed the Arc SQL Extension from machine: $machineName"
-				$resources = Get-AzResource -ResourceGroupName $resourceGroup -ResourceType "Microsoft.AzureArcData/SqlServerInstances" -Name $MachineName -ErrorAction Stop -Pre -ExpandProperties
+				$resources = Get-AzResource -ResourceGroupName $resourceGroup -ResourceType "Microsoft.AzureArcData/SqlServerInstances" -Name "$MachineName*" -ErrorAction Stop -Pre -ExpandProperties
 				foreach ($resource in $resources) {
 					try {
-						Remove-AzResource -ResourceId $resource.ResourceId -Force -ErrorAction Stop
-						Write-Host "Successfully removed the Arc SQL Instance resource: $($resource.Name)"
+						Remove-AzResource -ResourceId $resource.ResourceId -Force -ErrorAction Stop | Out-Null
+						Write-Host "Successfully removed the Azure SQL Instance resource: $($resource.Name)"
 					} catch {
-						Write-Error "Failed to remove Arc SQL Instance resource: $($resource.Name). Error: $_"
+						Write-Error "Failed to remove Azure SQL Instance resource: $($resource.Name). Error: $_"
 					}
 				}
 			} else {
@@ -484,31 +484,36 @@ function connect-toAzure {
 		## specified subscription. If not then authenticate or
 		## set the existing context to the subscription
 		########################################################
-		if ($PSCmdlet.ParameterSetName -eq 'PrincipalSet') {
-			# Connect using Service Principal
-			Write-Verbose "Connecting to Azure using Service Principal for Subscription: $subscriptionId in Tenant: $tenantId";
-			$secureSecret = ConvertTo-SecureString $servicePrincipalSecret -AsPlainText -Force
-			$Credential = New-Object System.Management.Automation.PSCredential ($servicePrincipalClientId, $secureSecret)
-			$curContext = Connect-AzAccount -ServicePrincipal -TenantId $tenantId -Credential $Credential;
-		} elseif (-not $Context) {
-			# Not connected to Azure, so let's connect...
-			Write-Verbose 'Azure Context not found. Prompting for authentication...';
-			$curContext = Connect-AzAccount -Subscription $subscriptionId -Tenant $tenantId;
-		} elseif ($Context.Subscription.Id -ne $subscriptionId ) {
-			# There could be a valid context, but it might be the wrong tenant
-			if (Get-AzSubscription -SubscriptionId $subscriptionId -ErrorAction SilentlyContinue) {
-				# Right environment, wrong subscription. Just switch context...
-				Write-Verbose "Azure Context found. Setting Context to subscription: $subscriptionId";
-				$curContext = Set-AzContext -Subscription $subscriptionId;
-			} else {
-				# Probably wrong tenant... reconnect...
+		try {
+			if ($PSCmdlet.ParameterSetName -eq 'PrincipalSet') {
+				# Connect using Service Principal
+				Write-Verbose "Connecting to Azure using Service Principal for Subscription: $subscriptionId in Tenant: $tenantId";
+				$secureSecret = ConvertTo-SecureString $servicePrincipalSecret -AsPlainText -Force
+				$Credential = New-Object System.Management.Automation.PSCredential ($servicePrincipalClientId, $secureSecret)
+				$curContext = Connect-AzAccount -ServicePrincipal -TenantId $tenantId -Credential $Credential;
+			} elseif (-not $Context) {
+				# Not connected to Azure, so let's connect...
+				Write-Verbose 'Azure Context not found. Prompting for authentication...';
 				$curContext = Connect-AzAccount -Subscription $subscriptionId -Tenant $tenantId;
+			} elseif ($Context.Subscription.Id -ne $subscriptionId ) {
+				# There could be a valid context, but it might be the wrong tenant
+				if (Get-AzSubscription -SubscriptionId $subscriptionId -ErrorAction SilentlyContinue) {
+					# Right environment, wrong subscription. Just switch context...
+					Write-Verbose "Azure Context found. Setting Context to subscription: $subscriptionId";
+					$curContext = Set-AzContext -Subscription $subscriptionId;
+				} else {
+					# Probably wrong tenant... reconnect...
+					$curContext = Connect-AzAccount -Subscription $subscriptionId -Tenant $tenantId;
+				}
+			} else {
+				# Nothing to do. Already in the right environment and right subscription...
+				$curContext = $Context
+				Write-Verbose "Azure Context was already found and set set for subscription: $subscriptionId ($($Context.Subscription.Name))";
 			}
-		} else {
-			# Nothing to do. Already in the right environment and right subscription...
-			$curContext = $Context
-			Write-Verbose "Azure Context was already found and set set for subscription: $subscriptionId ($($Context.Subscription.Name))";
-		}
-
-		return $curContext;
+			} catch {
+				Write-Error "An error occurred during Azure authentication: $_"
+				exit
+			}
+		
+			return $curContext;
 }
