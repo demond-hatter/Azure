@@ -75,7 +75,7 @@ function add-arcSqlExtension {
 			[string]$tenantId,
 		[Parameter(Mandatory=$True,ParameterSetName = "principal", Position=5)]
 		[Parameter(Mandatory=$True, ParameterSetName = "interactive", Position=3)]
-		[ValidateSet('eastus','eastus2','centralus','westus')]
+		[ValidateSet('eastus','eastus2','centralus','westus', "westus3")]
 			[string]$location,
 		[Parameter(Mandatory=$True,ParameterSetName = "principal", Position=6)]
 		[Parameter(Mandatory=$True, ParameterSetName = "interactive", Position=4)]
@@ -104,14 +104,19 @@ function add-arcSqlExtension {
 		New-Item -ItemType File -Path $LogFilePath -Force | Out-Null
 
 	Write-Verbose "Authenticating to Azure..."
+	try {
 		if ($PSCmdlet.ParameterSetName -eq 'interactive') {
-			$ctx = connect-toAzure -tenantId $tenantId -subscriptionId $subscritionId
+			$ctx = connect-toAzure -tenantId $tenantId -subscriptionId $subscriptionId
 		} elseif ($PSCmdlet.ParameterSetName -eq 'principal') {
-			$ctx = connect-toAzure -tenantId $tenantId -subscriptionId $subscritionId -servicePrincipalClientId $servicePrincipalClientId -servicePrincipalSecret $servicePrincipalSecret
+			$ctx = connect-toAzure -tenantId $tenantId -subscriptionId $subscriptionId -servicePrincipalClientId $servicePrincipalClientId -servicePrincipalSecret $servicePrincipalSecret
 		} else {
 			Write-Error "Invalid parameter set. Please use either 'interactive' or 'principal' parameter sets."
 			exit
 		}
+	} catch {
+		Write-Error "An error occurred during Azure authentication: $_"
+		exit
+	}
 
 		$ctx | Out-File -FilePath $LogFilePath -Append
 
@@ -214,7 +219,7 @@ function disable-arcSqlFeatures{
 			[string]$servicePrincipalSecret,
 		[Parameter(Mandatory=$True, ParameterSetName = "principal", Position=2)]
 		[Parameter(Mandatory=$True, ParameterSetName = "interactive", Position=0)]
-			[string]$subscritionId,
+			[string]$subscriptionId,
 		[Parameter(Mandatory=$True,ParameterSetName = "principal", Position=3)]
 		[Parameter(Mandatory=$True, ParameterSetName = "interactive", Position=1)]
 			[string]$resourceGroup,
@@ -252,9 +257,9 @@ function disable-arcSqlFeatures{
 	try {
 		Write-Verbose "Connecting to Azure with subscription ID: $subscriptionId"
 		if ($PSCmdlet.ParameterSetName -eq 'interactive') {
-			$defaultProfile = connect-toAzure -tenantId $tenantId -subscriptionId $subscritionId
+			$defaultProfile = connect-toAzure -tenantId $tenantId -subscriptionId $subscriptionId
 		} else {
-			$defaultProfile = connect-toAzure -tenantId $tenantId -subscriptionId $subscritionId -servicePrincipalClientId $servicePrincipalClientId -servicePrincipalSecret $servicePrincipalSecret
+			$defaultProfile = connect-toAzure -tenantId $tenantId -subscriptionId $subscriptionId -servicePrincipalClientId $servicePrincipalClientId -servicePrincipalSecret $servicePrincipalSecret
 		}
 	} catch {
 		Write-Error "An error occurred: $_"
