@@ -412,7 +412,7 @@ function remove-arcSqlExtension {
 				Write-Host "Arc SQL Extension is installed on machine: $machineName. Attempting to uninstall..."
 				$extension | Remove-AzConnectedMachineExtension -ErrorAction Stop
 				Write-Host "Successfully removed the Arc SQL Extension from machine: $machineName"
-				$resources = Get-AzResource -ResourceGroupName $resourceGroup -ResourceType "Microsoft.AzureArcData/SqlServerInstances" -Name "$MachineName*" -ErrorAction Stop -Pre -ExpandProperties
+				$resources = Get-AzResource -ResourceGroupName $resourceGroup -ODataQuery "resourceType eq 'Microsoft.AzureArcData/sqlServerInstances' and substringof(name, '$machineName')" -ErrorAction Stop -Pre -ExpandProperties
 				foreach ($resource in $resources) {
 					try {
 						Remove-AzResource -ResourceId $resource.ResourceId -Force -ErrorAction Stop | Out-Null
