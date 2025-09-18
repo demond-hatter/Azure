@@ -168,8 +168,8 @@ function add-arcSqlExtension {
 			"Failed to apply extension to machine: $MachineName. Error: $_" | Out-File -FilePath $LogFilePath -Append
 		}
 	}
-	write-verbose "Job creation complete. Monitor the status of the extension deployment jobs in the Azure Portal or via PowerShell."
-	write-verbose $(get-job | select-object name, state)
+	write-verbose "Job creation complete. Monitor the status of the extension deployment jobs in the Azure Portal or via PowerShell (Get-Job)."
+	
 }
 
 <#
