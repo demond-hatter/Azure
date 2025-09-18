@@ -285,11 +285,12 @@ function disable-arcSqlFeatures{
 			foreach ($resource in ($resources | Where-Object { $_.Properties.serviceType -eq "Engine"})) {
 
 				try {
-					if ($PSCmdlet.ShouldProcess($resource.name, "Performing dry-run patch for resource: $($resource.Id)")) {
+					if ($PSCmdlet.ShouldProcess($resource.name)) {
 						Write-Verbose "Patching resource: $($resource.Id)"
 						$resource | Set-AzResource -Properties $properties -UsePatchSemantics -Pre -Force -DefaultProfile $defaultProfile -ErrorAction Stop
 						Write-Host("Resource patched: $($resource.Id)") 
 					} else {
+						Write-Verbose "Performing dry-run patch for resource: $($resource.Id)"
 						$resource | Set-AzResource -Properties $properties -UsePatchSemantics -Pre -Force -DefaultProfile $defaultProfile -ErrorAction Stop -WhatIf
 					}
 				} catch {
