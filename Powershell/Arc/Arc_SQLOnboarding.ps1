@@ -159,7 +159,7 @@ function add-arcSqlExtension {
 											-Location $Location `
 											-Publisher "Microsoft.AzureData" `
 											-Setting $Settings `
-											-ExtensionType "$extensionName"
+											-ExtensionType "$extensionName" -Nowait
 								
 			Write-Host "Extension successfully applied to machine: $MachineName"
 			"Extension successfully applied to machine: $MachineName" | Out-File -FilePath $LogFilePath -Append
@@ -243,6 +243,9 @@ function disable-arcSqlFeatures{
 		"migration": {
 			"assessment": {
 				"enabled": false
+				"skuRecommendationResults": null,
+            	"assessmentUploadTime": null,
+            	"serverAssessments": null
 			}
 		}
 	}
@@ -277,7 +280,7 @@ function disable-arcSqlFeatures{
 
 			Write-Host "Processing machine: $MachineName"
 			Write-Verbose "Fetching Sql Instances on machine: $MachineName in resource group: $resourceGroup"
-			$resources = Get-AzResource -ResourceGroupName $resourceGroup -ResourceType "Microsoft.AzureArcData/SqlServerInstances" -Name $MachineName -ErrorAction Stop -Pre -ExpandProperties
+			$resources = Get-AzResource -ResourceGroupName $resourceGroup -ODataQuery "resourceType eq 'Microsoft.AzureArcData/sqlServerInstances' and substringof(name, '$machineName')" -ErrorAction Stop -Pre -ExpandProperties
 
 			foreach ($resource in ($resources | Where-Object { $_.Properties.serviceType -eq "Engine"})) {
 
