@@ -242,7 +242,7 @@ function disable-arcSqlFeatures{
 		},
 		"migration": {
 			"assessment": {
-				"enabled": false
+				"enabled": false,
 				"skuRecommendationResults": null,
             	"assessmentUploadTime": null,
             	"serverAssessments": null
