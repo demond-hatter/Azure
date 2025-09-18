@@ -153,7 +153,7 @@ function add-arcSqlExtension {
 		}
 
 		try {
-			New-AzConnectedMachineExtension -Name $extensionName `
+			$ext = New-AzConnectedMachineExtension -Name $extensionName `
 											-ResourceGroupName $ResourceGroup `
 											-MachineName $MachineName `
 											-Location $Location `
@@ -161,13 +161,15 @@ function add-arcSqlExtension {
 											-Setting $Settings `
 											-ExtensionType "$extensionName" -AsJob
 								
-			Write-Host "Extension successfully applied to machine: $MachineName"
-			"Extension successfully applied to machine: $MachineName" | Out-File -FilePath $LogFilePath -Append
+			Write-Host "Extension deployment job created for: $MachineName"
+			"Extension deployment job created for: $MachineName" | Out-File -FilePath $LogFilePath -Append
 		} catch {
 			Write-Error "Failed to apply extension to machine: $MachineName. Error: $_"
 			"Failed to apply extension to machine: $MachineName. Error: $_" | Out-File -FilePath $LogFilePath -Append
 		}
 	}
+	write-verbose "Job creation complete. Monitor the status of the extension deployment jobs in the Azure Portal or via PowerShell."
+	write-verbose $(get-job | select-object name, state)
 }
 
 <#
@@ -423,12 +425,13 @@ function remove-arcSqlExtension {
 			$extension = Get-AzConnectedMachineExtension -MachineName $machineName -ResourceGroupName $ResourceGroup -ErrorAction Stop | Where-Object { $_.Name -eq "WindowsAgent.SqlServer" }
 
 			if ($extension) {
-				Write-Host "Arc SQL Extension is installed on machine: $machineName. Attempting to uninstall..."
+				Write-Verbose "Arc SQL Extension is installed on machine: $machineName. Attempting to uninstall..."
 				$extension | Remove-AzConnectedMachineExtension -ErrorAction Stop
 				Write-Host "Successfully removed the Arc SQL Extension from machine: $machineName"
 				$resources = Get-AzResource -ResourceGroupName $resourceGroup -ODataQuery "resourceType eq 'Microsoft.AzureArcData/sqlServerInstances' and substringof(name, '$machineName')" -ErrorAction Stop -Pre -ExpandProperties
 				foreach ($resource in $resources) {
 					try {
+						Write-Verbose "Removing the Azure SQL Instance resource: $($resource.Name)"
 						Remove-AzResource -ResourceId $resource.ResourceId -Force -ErrorAction Stop | Out-Null
 						Write-Host "Successfully removed the Azure SQL Instance resource: $($resource.Name)"
 					} catch {
