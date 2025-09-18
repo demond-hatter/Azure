@@ -235,20 +235,20 @@ function disable-arcSqlFeatures{
 	)
 
 	[string]$propertiesJSON = @"
-	{
-		"backupPolicy": null,
-		"monitoring": {
-			"enabled": false
-		},
-		"migration": {
-			"assessment": {
-				"enabled": false,
-				"skuRecommendationResults": null,
-            	"assessmentUploadTime": null,
-            	"serverAssessments": null
-			}
+{
+	"backupPolicy": null,
+	"monitoring": {
+		"enabled": false
+	},
+	"migration": {
+		"assessment": {
+			"enabled": false,
+			"skuRecommendationResults": null,
+			"assessmentUploadTime": null,
+			"serverAssessments": null
 		}
 	}
+}
 "@
 
 	Write-Verbose "Resource Group Name: $resourceGroup"
