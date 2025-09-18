@@ -159,7 +159,7 @@ function add-arcSqlExtension {
 											-Location $Location `
 											-Publisher "Microsoft.AzureData" `
 											-Setting $Settings `
-											-ExtensionType "$extensionName" -Nowait
+											-ExtensionType "$extensionName" -AsJob
 								
 			Write-Host "Extension successfully applied to machine: $MachineName"
 			"Extension successfully applied to machine: $MachineName" | Out-File -FilePath $LogFilePath -Append
@@ -209,6 +209,12 @@ function add-arcSqlExtension {
 .PARAMETER logFilePath
 	The full path to a log file where the script will write its output. If the file already exists, it will be
 	overwritten. Default is 'ScriptExecutionLog.txt' in the current directory.
+.EXAMPLE
+	# Interactive login	
+	disable-arcSqlFeatures -subscriptionId "797987" -resourceGroup "myRGroup" -tenantId "7097r598724e098" -csvFilePath "C:\Temp\ArcMachines.csv" -logFilePath "C:\Temp\ArcOnboardingLog.txt"
+.EXAMPLE
+	# Service principal login
+	disable-arcSqlFeatures -servicePrincipalClientId "98080..." -servicePrincipalSecret "7707879867986" -subscriptionId "797987" -resourceGroup "myRGroup" -tenantId "7097r598724e098" -csvFilePath "C:\Temp\ArcMachines.csv" -logFilePath "C:\Temp\ArcOnboardingLog.txt"
 #>
 function disable-arcSqlFeatures{
 	[CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'interactive')]	
@@ -242,10 +248,7 @@ function disable-arcSqlFeatures{
 	},
 	"migration": {
 		"assessment": {
-			"enabled": false,
-			"skuRecommendationResults": null,
-			"assessmentUploadTime": null,
-			"serverAssessments": null
+			"enabled": false
 		}
 	}
 }
@@ -281,20 +284,21 @@ function disable-arcSqlFeatures{
 			Write-Host "Processing machine: $MachineName"
 			Write-Verbose "Fetching Sql Instances on machine: $MachineName in resource group: $resourceGroup"
 			$resources = Get-AzResource -ResourceGroupName $resourceGroup -ODataQuery "resourceType eq 'Microsoft.AzureArcData/sqlServerInstances' and substringof(name, '$machineName')" -ErrorAction Stop -Pre -ExpandProperties
-
+			Write-Verbose "Found $($resources.Count) Instances on machine: $MachineName"
+			
 			foreach ($resource in ($resources | Where-Object { $_.Properties.serviceType -eq "Engine"})) {
 
 				try {
 					if ($PSCmdlet.ShouldProcess($resource.name)) {
-						Write-Verbose "Patching resource: $($resource.Id)"
+						Write-Verbose "Patching resource: $($resource.name)"
 						$resource | Set-AzResource -Properties $properties -UsePatchSemantics -Pre -Force -DefaultProfile $defaultProfile -ErrorAction Stop
-						Write-Host("Resource patched: $($resource.Id)") 
+						Write-Host("Resource patched: $($resource.name)") 
 					} else {
-						Write-Verbose "Performing dry-run patch for resource: $($resource.Id)"
+						Write-Verbose "Performing dry-run patch for resource: $($resource.name)"
 						$resource | Set-AzResource -Properties $properties -UsePatchSemantics -Pre -Force -DefaultProfile $defaultProfile -ErrorAction Stop -WhatIf
 					}
 				} catch {
-					Write-Error "Failed to patch resource: $($resource.Id). Error: $_"
+					Write-Error "Failed to patch resource: $($resource.name). Resource Id: $($resource.id). Error: $_"
 				}
 			}
 
@@ -340,6 +344,12 @@ function disable-arcSqlFeatures{
 .PARAMETER logFilePath
 	The full path to a log file where the script will write its output. If the file already exists, it will be
 	overwritten. Default is 'ScriptExecutionLog.txt' in the current directory.
+.EXAMPLE
+	# Interactive login
+	remove-arcSqlExtension -subscriptionId "797987" -resourceGroup "myRGroup" -tenantId "7097r598724e098" -csvFilePath "C:\Temp\ArcMachines.csv" -logFilePath "C:\Temp\ArcOnboardingLog.txt"
+.EXAMPLE
+	# Service principal login
+	remove-arcSqlExtension -servicePrincipalClientId "98080..." -servicePrincipalSecret "7707879867986" -subscriptionId "797987" -resourceGroup "myRGroup" -tenantId "7097r598724e098" -csvFilePath "C:\Temp\ArcMachines.csv" -logFilePath "C:\Temp\ArcOnboardingLog.txt"
 #>
 function remove-arcSqlExtension {
 	[CmdletBinding(DefaultParameterSetName = 'interactive')]	
