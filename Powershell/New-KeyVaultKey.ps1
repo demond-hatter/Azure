@@ -95,8 +95,9 @@ PROCESS {
             Destination = 'HSM'
             Expires = $Expires
         }
-        Add-AzKeyVaultKey @parms
-
+        Write-Host "Created Key Vault Key: $KeyName in Key Vault: $KeyVaultName"
+        $key = Add-AzKeyVaultKey @parms
+        $key | Backup-AzKeyVaultKey -OutputFile ".\$($KeyVaultName)_$($KeyName).bak"
     }
 }
 
