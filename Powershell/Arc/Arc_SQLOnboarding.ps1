@@ -147,7 +147,11 @@ function add-arcSqlExtension {
 				@{
 					Name = "clientconnections"
 					Enable = $false
-				}       
+				}
+				@{
+					Name = "MigrationAssessment"
+					Enable = $false
+				}              
 			)
 			LicenseType = $licenseType
 		}
@@ -500,7 +504,7 @@ function connect-toAzure {
 	)
 		$Context = Get-AzContext;
 		$curContext= $null
-
+		
 		########################################################
 		## Check if an Azure context already exist for the
 		## specified subscription. If not then authenticate or

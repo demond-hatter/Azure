@@ -59,30 +59,34 @@ function New-KeyVaultKey {
         [string]$AppSecretSecretName
     )
 PROCESS {
-    # Install required modules if not present
-    if (-not (Get-Module -ListAvailable -Name Az.Accounts)) {
-        Install-Module -Name Az.Accounts -Force -Scope CurrentUser
-    }
-    if (-not (Get-Module -ListAvailable -Name Az.KeyVault)) {
-        Install-Module -Name Az.KeyVault -Force -Scope CurrentUser
-    }
+    write-verbose "Checking for required modules..."
+        # Install required modules if not present
+        if (-not (Get-Module -ListAvailable -Name Az.Accounts)) {
+            Install-Module -Name Az.Accounts -Force -Scope CurrentUser
+        }
+        if (-not (Get-Module -ListAvailable -Name Az.KeyVault)) {
+            Install-Module -Name Az.KeyVault -Force -Scope CurrentUser
+        }
 
     Import-Module Az.Accounts
     Import-Module Az.KeyVault
 
+    write-verbose "Authenticating to Azure..."
     # Authenticate to Azure using the specified tenant and subscription as the current user
         Connect-AzAccount -Tenant $tenantId -Subscription $subscriptionId
 
+    write-verbose "Retrieving App Registration credentials from Key Vault..."
     # Get secrets from Key Vault using your current context
         $AppId = (Get-AzKeyVaultSecret -VaultName $KeyVaultName -Name $AppIdSecretName).SecretValue
         $AppSecret = (Get-AzKeyVaultSecret -VaultName $KeyVaultName -Name $AppSecretSecretName).SecretValue
         $appId = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($AppId))
 
-
+    write-verbose "Authenticating to Azure using App Registration credentials..."
     # Authenticate to Azure using App Registration credentials
         $Credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $AppId, $AppSecret
         Connect-AzAccount -ServicePrincipal -Credential $Credential -Tenant $tenantId -Subscription $subscriptionId
 
+    write-verbose "Creating new Key Vault Key..."
     # Create HSM-backed encryption key
         $Created = (Get-Date).ToUniversalTime()
         $Expires = $Created.addyears(2)
@@ -95,8 +99,9 @@ PROCESS {
             Destination = 'HSM'
             Expires = $Expires
         }
-        Write-Host "Created Key Vault Key: $KeyName in Key Vault: $KeyVaultName"
         $key = Add-AzKeyVaultKey @parms
+        Write-Host "Created Key Vault Key: $KeyName in Key Vault: $KeyVaultName"
+        Write-Verbose "Backing up Key Vault Key: $KeyName"
         $key | Backup-AzKeyVaultKey -OutputFile ".\$($KeyVaultName)_$($KeyName).bak"
     }
 }
